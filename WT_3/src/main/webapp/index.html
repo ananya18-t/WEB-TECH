@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculate your monthly electricity bill instantly with slab breakdown rates using Java Servlet API.">
+  <title>ElectroBill - Electricity Bill Calculator Servlet</title>
+
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header Section -->
+    <header class="header">
+      <div class="brand-badge">
+        <span class="pulse"></span> Java Servlet Powered Engine
+      </div>
+      <h1>Electricity Bill Calculator</h1>
+      <p>Instant slab-rate electricity billing powered by Java Servlet backend architecture</p>
+    </header>
+
+    <!-- Slab Rate Rules Summary Banner -->
+    <section class="rate-banner" aria-label="Tariff Slab Rates">
+      <div class="rate-card s1">
+        <div class="icon">₹</div>
+        <div class="rate-info">
+          <span class="label">Slab 1 (First 50 Units)</span>
+          <span class="value">₹3.50 / unit</span>
+        </div>
+      </div>
+      <div class="rate-card s2">
+        <div class="icon">₹</div>
+        <div class="rate-info">
+          <span class="label">Slab 2 (Next 100 Units)</span>
+          <span class="value">₹4.00 / unit</span>
+        </div>
+      </div>
+      <div class="rate-card s3">
+        <div class="icon">₹</div>
+        <div class="rate-info">
+          <span class="label">Slab 3 (Next 100 Units)</span>
+          <span class="value">₹5.20 / unit</span>
+        </div>
+      </div>
+      <div class="rate-card s4">
+        <div class="icon">₹</div>
+        <div class="rate-info">
+          <span class="label">Slab 4 (Above 250 Units)</span>
+          <span class="value">₹6.50 / unit</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Main Grid -->
+    <main class="app-grid">
+
+      <!-- Calculator Input Form -->
+      <section class="card">
+        <h2 class="card-title">
+          <i>⚡</i> Bill Details Input
+        </h2>
+
+        <form id="billForm" action="ElectricityBillServlet" method="POST">
+          <input type="hidden" name="format" id="formatInput" value="html">
+
+          <!-- Consumer Name -->
+          <div class="form-group">
+            <label class="form-label" for="customerName">Consumer Name</label>
+            <input type="text" class="form-control" id="customerName" name="customerName" placeholder="e.g. Ananya Sharma" required>
+          </div>
+
+          <!-- Consumer ID -->
+          <div class="form-group">
+            <label class="form-label" for="consumerId">Consumer Connection ID</label>
+            <div class="input-with-btn">
+              <input type="text" class="form-control" id="consumerId" name="consumerId" placeholder="e.g. ELE-948271" required>
+              <button type="button" class="btn-icon" id="btnGenId" title="Auto-generate ID">🎲</button>
+            </div>
+          </div>
+
+          <!-- Grid: Category & Billing Month -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="category">Tariff Category</label>
+              <select class="form-control" id="category" name="category">
+                <option value="Residential">Residential</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Industrial">Industrial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="billingMonth">Billing Month</label>
+              <select class="form-control" id="billingMonth" name="billingMonth">
+                <option value="September 2026">September 2026</option>
+                <option value="August 2026">August 2026</option>
+                <option value="July 2026">July 2026</option>
+                <option value="June 2026">June 2026</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Units Consumed -->
+          <div class="form-group">
+            <label class="form-label" for="units">Total Units Consumed (kWh)</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="units" name="units" placeholder="e.g. 185.50" required>
+          </div>
+
+          <!-- Preset Quick Unit Buttons -->
+          <div class="preset-section">
+            <span class="preset-label">Quick Test Presets:</span>
+            <div class="preset-grid">
+              <button type="button" class="btn-preset" data-preset="40">40 kWh (Slab 1)</button>
+              <button type="button" class="btn-preset" data-preset="120">120 kWh (Slab 2)</button>
+              <button type="button" class="btn-preset" data-preset="200">200 kWh (Slab 3)</button>
+              <button type="button" class="btn-preset" data-preset="350">350 kWh (Slab 4)</button>
+            </div>
+          </div>
+
+          <!-- Options: Fixed Charge & Govt Tax -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
+            <label class="checkbox-group">
+              <input type="checkbox" id="includeFixedCharge" name="includeFixedCharge" value="true" checked>
+              <span class="checkbox-label">Fixed Meter Fee (₹50)</span>
+            </label>
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" for="taxPercent" style="font-size: 0.8rem;">Govt Tax / Duty (%)</label>
+              <input type="number" step="0.1" min="0" max="30" class="form-control" id="taxPercent" name="taxPercent" value="5.0" style="padding: 0.5rem 0.75rem;">
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="button-group">
+            <button type="button" class="btn-primary" id="btnAjaxCalc">
+              <span>⚡ Calculate via Servlet (AJAX)</span>
+            </button>
+            <button type="submit" class="btn-secondary" id="btnFormSubmit">
+              <span>📄 Submit HTTP Form POST (Servlet Page)</span>
+            </button>
+          </div>
+
+        </form>
+      </section>
+
+      <!-- Bill Calculation Results Section -->
+      <section class="card" id="resultCard">
+        <h2 class="card-title">
+          <i>📊</i> Bill Breakdown & Summary
+        </h2>
+
+        <!-- Empty State -->
+        <div id="resultEmpty" class="results-empty">
+          <div class="icon">💡</div>
+          <p>Enter units consumed and click <strong>Calculate via Servlet</strong> to view the itemized slab breakdown.</p>
+        </div>
+
+        <!-- Result Content (Initially Hidden) -->
+        <div id="resultContent" style="display: none;">
+          
+          <!-- Net Payable Hero Header -->
+          <div class="bill-hero">
+            <div class="title">Net Amount Payable</div>
+            <div class="amount" id="resTotal">₹0.00</div>
+            <div class="sub" id="resMeta">Due Date: -- | Invoice #--</div>
+          </div>
+
+          <!-- Slab Distribution Bar -->
+          <div class="slab-progress-container">
+            <div class="slab-progress-bar">
+              <div class="progress-segment seg-1" id="barS1" style="width: 0%" title="Slab 1"></div>
+              <div class="progress-segment seg-2" id="barS2" style="width: 0%" title="Slab 2"></div>
+              <div class="progress-segment seg-3" id="barS3" style="width: 0%" title="Slab 3"></div>
+              <div class="progress-segment seg-4" id="barS4" style="width: 0%" title="Slab 4"></div>
+            </div>
+            <div class="slab-legend">
+              <div class="legend-item"><span class="dot d-1"></span>0-50 (₹3.5)</div>
+              <div class="legend-item"><span class="dot d-2"></span>51-150 (₹4.0)</div>
+              <div class="legend-item"><span class="dot d-3"></span>151-250 (₹5.2)</div>
+              <div class="legend-item"><span class="dot d-4"></span>>250 (₹6.5)</div>
+            </div>
+          </div>
+
+          <!-- Itemized Breakdown Table -->
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th>Slab Range</th>
+                <th>Units</th>
+                <th>Rate</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="resTableBody">
+              <!-- Rows injected dynamically -->
+            </tbody>
+          </table>
+
+          <!-- Financial Summary List -->
+          <div class="summary-list">
+            <div class="summary-item">
+              <span>Energy Charges Subtotal:</span>
+              <strong id="resBaseAmt">₹0.00</strong>
+            </div>
+            <div class="summary-item" id="resFixedRow">
+              <span>Fixed Meter Charge:</span>
+              <strong id="resFixedAmt">₹0.00</strong>
+            </div>
+            <div class="summary-item" id="resTaxRow">
+              <span>Govt Electricity Tax:</span>
+              <strong id="resTaxAmt">₹0.00</strong>
+            </div>
+            <div class="summary-item grand-total">
+              <span>Total Bill Amount:</span>
+              <strong id="resGrandAmt">₹0.00</strong>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn-secondary" id="btnPrint" style="flex: 1;">🖨️ Print Receipt</button>
+            <button type="button" class="btn-secondary" id="btnCopyJson" style="flex: 1;">📋 Copy JSON</button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Calculation History Section -->
+    <section class="history-section" id="historySection" style="display: none;">
+      <h3 style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+        <span>🕒 Saved Calculation History</span>
+        <button id="btnClearHistory" style="background: none; border: none; color: var(--accent-rose); font-size: 0.8rem; cursor: pointer; text-decoration: underline;">Clear History</button>
+      </h3>
+      <div class="history-grid" id="historyGrid"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Electricity Bill Servlet Application &bull; Built with HTML5, CSS3, JavaScript & Java Servlet API (javax.servlet)</p>
+      <p style="margin-top: 6px; font-size: 0.8rem;">Endpoint: <code>/ElectricityBillServlet</code> | Rate Rules: 1-50 @ ₹3.50, 51-150 @ ₹4.00, 151-250 @ ₹5.20, >250 @ ₹6.50</p>
+    </footer>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toastMsg">Notification message</span>
+  </div>
+
+  <!-- Client JavaScript -->
+  <script src="js/script.js"></script>
+</body>
+</html>
